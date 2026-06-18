@@ -8,34 +8,10 @@ Nossa proposta é uma plataforma de descoberta e inventário automatizado de dad
 - Geração de relatório de adequação a LGPD em PDF.
 
 **Fluxo do usuário**  
-Usuário faz upload de arquivo: CSV, XLSX  
-Sistema analisa colunas  
-Sistema calcula risco  
-Exemplo:  
-| Base contém:  |  
-|---------|
-|- 1.200 CPFs|
-|- 1.200 emails|
-|- 1.200 telefones|
-|Risco: Médio|
-
-Sistema gera relatório
-Exemplo:
-
-Relatório de Inventário de Dados Pessoais
-
-Arquivos analisados:
-- clientes.csv
-
-Dados encontrados:
-- CPF
-- Nome
-- Email
-
-Recomendação:
-- Criptografar armazenamento
-- Restringir acesso
-- Definir política de retenção
+- Usuário faz upload de arquivo: CSV, XLSX  
+- Sistema analisa colunas  
+- Sistema calcula risco  
+- Sistema gera relatório com recomendações  
 
 ## Evolução do projeto (próximos passos).
 Mapear explicitamente alguns artigos da lei, por exemplo:  
