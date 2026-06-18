@@ -2,8 +2,7 @@
 Nossa proposta é uma plataforma de descoberta e inventário automatizado de dados pessoais para apoio à conformidade com a LGPD em pequenas e médias empresas.
 
 ### Escopo MVP
-- Scanner para arquivos estruturados locais.
-- Upload de CSV/XLSX.
+- Scanner para arquivos estruturados (CSV/XLSX) locais.
 - Identificação automática de dados pessoais (CPF, nome, email, telefone, endereço).
 - Classificação de risco.
 - Geração de relatório de adequação a LGPD em PDF.
