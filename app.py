@@ -4,8 +4,7 @@ import pandas as pd
 st.set_page_config(page_title="Scanner", page_icon="🛡️", layout="centered")
 st.title("🛡️ Scanner")
 st.subheader("Inventário Automatizado")
-st.markdown("Faça o upload de arquivos estruturados (CSV ou XLSX) para identificar
-automaticamente a presença de dados pessoais.")
+st.markdown("UPLOAD")
 arquivo = st.file_uploader("Selecione o arquivo de dados", type=["csv", "xlsx"])
 if arquivo is not None:
     try:
