@@ -9,7 +9,7 @@ arquivo = st.file_uploader("Selecione o arquivo de dados", type=["csv", "xlsx"])
 if arquivo is not None:
     try:
         if arquivo.name.endswith('.csv'):
-        df = pd.read_csv(arquivo)
+            df = pd.read_csv(arquivo)
 
         else:
             df = pd.read_excel(arquivo)
