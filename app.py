@@ -33,46 +33,39 @@ if arquivo is not None:
             
         st.success(f"Arquivo '{arquivo.name}' carregado com sucesso!")
         
-        # 2. Execução do Motor de Busca
+        # Execução do Motor de Busca
         st.write("### 🔍 Analisando dados...")
         resultados = analisar_dataframe(df)
         
-        # 3. Exibição do Diagnóstico e Nível de Risco
+        # 3. Exibição do Diagnóstico e Nível de Risco na Tela
         if resultados:
             st.warning("⚠️ Foram encontrados dados pessoais no arquivo!")
-            
-            # Monta uma tabela visual no Streamlit para mostrar o inventário
-            dados_tabela = [
-                {"Coluna no Arquivo": col, "Tipo de Dado Detectado": tipo} 
-                for col, tipo in resultados.items()
-            ]
+            dados_tabela = [{"Coluna no Arquivo": col, "Tipo de Dado Detectado": tipo} for col, tipo in resultados.items()]
             st.table(dados_tabela)
             
-            # Regra de cálculo de risco simples para a banca do MVP
             qtd_colunas_expostas = len(resultados)
             if qtd_colunas_expostas >= 3:
                 st.error("🚨 Nível de Risco Geral: ALTO (Múltiplos identificadores expostos)")
             else:
                 st.warning("⚠️ Nível de Risco Geral: MÉDIO (Dados pessoais identificados)")
-            
-            # 4. Geração e Download do Relatório em PDF
-            st.write("---")
-            st.write("### 📄 Relatório de Adequação")
-            st.markdown("Clique no botão abaixo para descarregar o relatório oficial de riscos da LGPD em formato PDF.")
-            
-            # Gera os bytes do PDF em tempo real na memória (Privacy by Design)
-            pdf_data = gerar_pdf_bytes(resultados, len(df))
-            
-            # Botão nativo do Streamlit para download de ficheiros
-            st.download_button(
-                label="📥 Descarregar Relatório PDF",
-                data=bytes(pdf_data),
-                file_name=f"Relatorio_Adequacao_LGPD_{arquivo.name}.pdf",
-                mime="application/pdf"
-            )
-            
         else:
+            # Caso não encontre nada, exibe sucesso na tela
             st.success("✅ Nenhum dado pessoal evidente (CPF, Email, Telefone) foi detectado nas amostras.")
+            
+        # 4. Geração e Download do Relatório em PDF (AGORA FORA DO IF/ELSE - SEMPRE APARECE)
+        st.write("---")
+        st.write("### 📄 Relatório de Adequação")
+        st.markdown("Clique no botão abaixo para descarregar o relatório oficial de riscos da LGPD em formato PDF.")
+        
+        # O gerador de PDF funciona mesmo se 'resultados' for um dicionário vazio {}
+        pdf_data = gerar_pdf_bytes(resultados, len(df))
+        
+        st.download_button(
+            label="📥 Descarregar Relatório PDF",
+            data=bytes(pdf_data),
+            file_name=f"Relatorio_Adequacao_LGPD_{arquivo.name}.pdf",
+            mime="application/pdf"
+        )
             
         # 5. Pré-visualização dos Dados Originais (Apenas as primeiras 5 linhas)
         st.write("---")
