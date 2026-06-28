@@ -1,51 +1,52 @@
-import re
+import streamlit as st
 import pandas as pd
+# Importamos a função que acabamos de criar no outro arquivo
+from motor_busca import analisar_dataframe
 
-def extrair_padroes_coluna(series):
-    """
-    Analisa os valores de uma coluna (Pandas Series) para identificar
-    se correspondem a padrões de CPF, Email ou Telefone.
-    """
-    # Convertemos todos os valores para string e removemos espaços em branco
-    valores = series.dropna().astype(str).str.strip()
-    
-    if valores.empty:
-        return None
+st.set_page_config(page_title="Scanner LGPD", page_icon="🛡️", layout="centered")
 
-    # 1. Expressões Regulares (Regex) para cada tipo de dado
-    regex_cpf = r'^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$'
-    regex_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    # Aceita formatos: (XX) 9XXXX-XXXX, XX9XXXXXXXX, etc.
-    regex_telefone = r'^?\(?[1-9]{2}\)? ?(?:[2-8]|9[1-9])\d{3}-?\d{4}$'
+st.title("🛡️ Scanner de Conformidade LGPD")
+st.subheader("Inventário Automatizado para PMEs")
 
-    # Vamos testar o padrão nas primeiras 50 linhas para classificar a coluna
-    amostra = valores.head(50)
-    
-    total_itens = len(amostra)
-    cpfs_encontrados = sum(1 for v in amostra if re.match(regex_cpf, v))
-    emails_encontrados = sum(1 for v in amostra if re.match(regex_email, v))
-    telefones_encontrados = sum(1 for v in amostra if re.match(regex_telefone, v))
+st.markdown("Faça o upload de arquivos estruturados (CSV ou XLSX) para identificar automaticamente a presença de dados pessoais.")
 
-    # Se mais de 70% da amostra bater com o padrão, classificamos a coluna
-    if cpfs_encontrados / total_itens > 0.7:
-        return "CPF"
-    elif emails_encontrados / total_itens > 0.7:
-        return "E-mail"
-    elif telefones_encontrados / total_itens > 0.7:
-        return "Telefone"
-        
-    return None
+arquivo = st.file_uploader("Selecione o arquivo de dados", type=["csv", "xlsx"])
 
-def analisar_dataframe(df):
-    """
-    Varre todo o DataFrame coluna por coluna e retorna um inventário
-    de onde foram encontrados dados pessoais.
-    """
-    inventario = {}
-    
-    for coluna in df.columns:
-        tipo_dado = extrair_padroes_coluna(df[coluna])
-        if tipo_dado:
-            inventario[coluna] = tipo_dado
+if arquivo is not None:
+    try:
+        if arquivo.name.endswith('.csv'):
+            df = pd.read_csv(arquivo)
+        else:
+            df = pd.read_excel(arquivo)
             
-    return inventario
+        st.success(f"Arquivo '{arquivo.name}' carregado com sucesso!")
+        
+        # --- AQUI ENTRA O NOSSO MOTOR DE BUSCA ---
+        st.write("### 🔍 Analisando dados...")
+        
+        # Executa a análise na memória
+        resultados = analisar_dataframe(df)
+        
+        if resultados:
+            st.warning("⚠️ Foram encontrados dados pessoais no arquivo!")
+            
+            # Mostra os resultados em formato de tabela simples
+            dados_tabela = [{"Coluna no Arquivo": col, "Tipo de Dado Detectado": tipo} for col, tipo in resultados.items()]
+            st.table(dados_tabela)
+            
+            # Cálculo simples de risco para o MVP
+            qtd_colunas_expostas = len(resultados)
+            if qtd_colunas_expostas >= 3:
+                st.error("🚨 Nível de Risco Geral: ALTO (Múltiplos identificadores sensíveis expostos)")
+            else:
+                st.warning("⚠️ Nível de Risco Geral: MÉDIO (Dados pessoais identificados)")
+        else:
+            st.success("✅ Nenhum dado pessoal evidente (CPF, Email, Telefone) foi detectado nas amostras.")
+            
+        # Exibe os dados originais abaixo do diagnóstico
+        st.write("---")
+        st.write("#### Pré-visualização dos dados enviados:")
+        st.dataframe(df.head(5))
+        
+    except Exception as e:
+        st.error(f"Erro ao processar o arquivo: {e}")
