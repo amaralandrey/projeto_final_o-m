@@ -16,7 +16,7 @@ def extrair_padroes_coluna(series):
     regex_cpf = r'^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$'
     regex_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     # Aceita formatos: (XX) 9XXXX-XXXX, XX9XXXXXXXX, etc.
-    regex_telefone = r'^?\(?[1-9]{2}\)? ?(?:[2-8]|9[1-9])\d{3}-?\d{4}$'
+    regex_telefone = r'^\(?[1-9]{2}\)? ?(?:[2-8]|9[1-9])\d{3}-?\d{4}$'
 
     # Vamos testar o padrão nas primeiras 50 linhas para classificar a coluna
     amostra = valores.head(50)
