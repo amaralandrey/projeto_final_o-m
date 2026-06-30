@@ -1,30 +1,32 @@
-import os
 import streamlit as st
 import pandas as pd
 import spacy
 
-# --- CONFIGURAÇÃO DA PÁGINA (Deve ser o primeiro comando Streamlit) ---
+# --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Scanner LGPD - PMEs", 
     page_icon="🛡️", 
     layout="centered"
 )
 
-# --- INICIALIZAÇÃO SEGURA DO NLP (Para o Streamlit Cloud) ---
+# --- INICIALIZAÇÃO DO NLP SEGURO ---
 @st.cache_resource
 def inicializar_e_carregar_nlp():
     """
-    Tenta carregar o modelo em português. Se não encontrar (primeiro boot no Cloud),
-    faz o download silencioso antes de carregar na memória.
+    Importa o modelo diretamente como um pacote Python,
+    evitando problemas de caminhos (Path) no Streamlit Cloud.
     """
     try:
-        return spacy.load("pt_core_news_sm")
-    except OSError:
-        # Força o download do modelo caso ele não exista no servidor
+        import pt_core_news_sm
+        return pt_core_news_sm.load()
+    except ImportError:
+        # Fallback caso o download falhe no requirements
+        import os
         os.system("python -m spacy download pt_core_news_sm")
-        return spacy.load("pt_core_news_sm")
+        import pt_core_news_sm
+        return pt_core_news_sm.load()
 
-# O modelo é carregado globalmente uma única vez e fica disponível em cache
+# Carrega o modelo globalmente
 nlp = inicializar_e_carregar_nlp()
 
 # --- IMPORTAÇÕES DO PROJETO ---
