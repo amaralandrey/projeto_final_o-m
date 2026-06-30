@@ -3,11 +3,6 @@ import pandas as pd
 import spacy
 import streamlit as st
 
-# Faz o cache do modelo para carregar rápido no Streamlit Cloud
-@st.cache_resource
-def carregar_modelo_nlp():
-    return spacy.load("pt_core_news_sm")
-
 nlp = carregar_modelo_nlp()
 
 def extrair_padroes_coluna(series):
