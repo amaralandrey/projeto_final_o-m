@@ -1,3 +1,5 @@
+import os
+import sys
 import streamlit as st
 import pandas as pd
 import spacy
@@ -9,27 +11,32 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- INICIALIZAÇÃO DO NLP SEGURO ---
+# --- INICIALIZAÇÃO DO NLP À PROVA DE FALHAS ---
 @st.cache_resource
-def inicializar_e_carregar_nlp():
+def carregar_modelo_nlp():
     """
-    Importa o modelo diretamente como um pacote Python,
-    evitando problemas de caminhos (Path) no Streamlit Cloud.
+    Tenta carregar por string. Se falhar, executa o download usando o pip 
+    do próprio ambiente virtual ativo e recarrega o sys.path.
     """
     try:
-        import pt_core_news_sm
-        return pt_core_news_sm.load()
-    except ImportError:
-        # Fallback caso o download falhe no requirements
-        import os
-        os.system("python -m spacy download pt_core_news_sm")
-        import pt_core_news_sm
-        return pt_core_news_sm.load()
+        return spacy.load("pt_core_news_sm")
+    except OSError:
+        with st.spinner("📥 Configurando o motor de inteligência em português para o primeiro uso... Aguarde alguns segundos."):
+            # Roda o download apontando exatamente para o executável do Python ativo
+            os.system(f"{sys.executable} -m spacy download pt_core_news_sm")
+            # Força o recarregamento interno do spaCy
+            return spacy.load("pt_core_news_sm")
 
-# Carrega o modelo globalmente
-nlp = inicializar_e_carregar_nlp()
+# Carrega o modelo com segurança (se falhar na primeira, ele baixa e tenta de novo)
+try:
+    nlp = carregar_modelo_nlp()
+except Exception as e:
+    st.error(f"Erro ao inicializar o motor de buscas (NLP): {e}")
+    st.info("Por favor, tente reiniciar o aplicativo no painel do Streamlit.")
+    st.stop()
 
 # --- IMPORTAÇÕES DO PROJETO ---
+# (Mova suas importações para DEPOIS do carregamento do NLP para evitar quebras)
 from motor_busca import analisar_dataframe
 from gerador_pdf import gerar_pdf_bytes
 
