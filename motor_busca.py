@@ -3,7 +3,8 @@ import pandas as pd
 import spacy
 import streamlit as st
 
-nlp = carregar_modelo_nlp()
+import pt_core_news_sm
+nlp = pt_core_news_sm.load()
 
 def extrair_padroes_coluna(series):
     valores = series.dropna().astype(str).str.strip()
