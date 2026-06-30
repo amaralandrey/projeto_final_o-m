@@ -1,23 +1,43 @@
+import os
 import streamlit as st
 import pandas as pd
-# Importamos as funções dos outros arquivos do projeto
-from motor_busca import analisar_dataframe
-from gerador_pdf import gerar_pdf_bytes
+import spacy
 
-# Configuração da página do Streamlit
+# --- CONFIGURAÇÃO DA PÁGINA (Deve ser o primeiro comando Streamlit) ---
 st.set_page_config(
     page_title="Scanner LGPD - PMEs", 
     page_icon="🛡️", 
     layout="centered"
 )
 
-# Cabeçalho da Interface Visual
+# --- INICIALIZAÇÃO SEGURA DO NLP (Para o Streamlit Cloud) ---
+@st.cache_resource
+def inicializar_e_carregar_nlp():
+    """
+    Tenta carregar o modelo em português. Se não encontrar (primeiro boot no Cloud),
+    faz o download silencioso antes de carregar na memória.
+    """
+    try:
+        return spacy.load("pt_core_news_sm")
+    except OSError:
+        # Força o download do modelo caso ele não exista no servidor
+        os.system("python -m spacy download pt_core_news_sm")
+        return spacy.load("pt_core_news_sm")
+
+# O modelo é carregado globalmente uma única vez e fica disponível em cache
+nlp = inicializar_e_carregar_nlp()
+
+# --- IMPORTAÇÕES DO PROJETO ---
+from motor_busca import analisar_dataframe
+from gerador_pdf import gerar_pdf_bytes
+
+# --- INTERFACE VISUAL ---
 st.title("🛡️ Scanner de Conformidade LGPD")
 st.subheader("Inventário Automatizado para Pequenas e Médias Empresas")
 
 st.markdown("""
 Faça o upload de arquivos estruturados (**CSV** ou **XLSX**) para identificar automaticamente a presença 
-de dados pessoais (CPF, E-mail, Telefone) e gerar o relatório de riscos sem salvar nenhuma informação no servidor.
+de dados pessoais (CPF, E-mail, Telefone, Nome Completo) e gerar o relatório de riscos sem salvar nenhuma informação no servidor.
 """)
 
 # Componente de Upload de Arquivos
@@ -33,7 +53,7 @@ if arquivo is not None:
             
         st.success(f"Arquivo '{arquivo.name}' carregado com sucesso!")
         
-        # Execução do Motor de Busca
+        # 2. Execução do Motor de Busca
         st.write("### 🔍 Analisando dados...")
         resultados = analisar_dataframe(df)
         
@@ -50,14 +70,13 @@ if arquivo is not None:
                 st.warning("⚠️ Nível de Risco Geral: MÉDIO (Dados pessoais identificados)")
         else:
             # Caso não encontre nada, exibe sucesso na tela
-            st.success("✅ Nenhum dado pessoal evidente (CPF, Email, Telefone) foi detectado nas amostras.")
+            st.success("✅ Nenhum dado pessoal evidente (CPF, Email, Telefone, Nome Completo) foi detectado nas amostras.")
             
-        # 4. Geração e Download do Relatório em PDF (AGORA FORA DO IF/ELSE - SEMPRE APARECE)
+        # 4. Geração e Download do Relatório em PDF
         st.write("---")
         st.write("### 📄 Relatório de Adequação")
         st.markdown("Clique no botão abaixo para descarregar o relatório oficial de riscos da LGPD em formato PDF.")
         
-        # O gerador de PDF funciona mesmo se 'resultados' for um dicionário vazio {}
         pdf_data = gerar_pdf_bytes(resultados, len(df))
         
         st.download_button(
