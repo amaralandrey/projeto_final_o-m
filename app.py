@@ -1,45 +1,34 @@
-import os
-import sys
 import streamlit as st
 import pandas as pd
 import spacy
 
-# --- CONFIGURAÇÃO DA PÁGINA ---
+# --- CONFIGURAÇÃO DA PÁGINA (Sempre o primeiro comando) ---
 st.set_page_config(
     page_title="Scanner LGPD - PMEs", 
     page_icon="🛡️", 
     layout="centered"
 )
 
-# --- INICIALIZAÇÃO DO NLP À PROVA DE FALHAS ---
+# --- INICIALIZAÇÃO DO NLP ---
 @st.cache_resource
 def carregar_modelo_nlp():
     """
-    Tenta carregar por string. Se falhar, executa o download usando o pip 
-    do próprio ambiente virtual ativo e recarrega o sys.path.
+    Carrega o modelo que já foi pré-instalado pelo requirements.txt
     """
-    try:
-        return spacy.load("pt_core_news_sm")
-    except OSError:
-        with st.spinner("📥 Configurando o motor de inteligência em português para o primeiro uso... Aguarde alguns segundos."):
-            # Roda o download apontando exatamente para o executável do Python ativo
-            os.system(f"{sys.executable} -m spacy download pt_core_news_sm")
-            # Força o recarregamento interno do spaCy
-            return spacy.load("pt_core_news_sm")
+    return spacy.load("pt_core_news_sm")
 
-# Carrega o modelo com segurança (se falhar na primeira, ele baixa e tenta de novo)
 try:
     nlp = carregar_modelo_nlp()
 except Exception as e:
-    st.error(f"Erro ao inicializar o motor de buscas (NLP): {e}")
-    st.info("Por favor, tente reiniciar o aplicativo no painel do Streamlit.")
+    st.error(f"Erro ao carregar o modelo de NLP: {e}")
     st.stop()
 
 # --- IMPORTAÇÕES DO PROJETO ---
-# (Mova suas importações para DEPOIS do carregamento do NLP para evitar quebras)
 from motor_busca import analisar_dataframe
 from gerador_pdf import gerar_pdf_bytes
 
+# --- INTERFACE VISUAL ---
+# (O restante do seu código permanece igual daqui para baixo...)
 # --- INTERFACE VISUAL ---
 st.title("🛡️ Scanner de Conformidade LGPD")
 st.subheader("Inventário Automatizado para Pequenas e Médias Empresas")
